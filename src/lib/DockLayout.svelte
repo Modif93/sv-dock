@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import type {PanelBase, TabBase, TabGroup} from "./dock-data";
+  import type { PanelBase, TabBase, TabGroup } from './dock-data';
 
   export interface LayoutProps {
     /**
@@ -23,7 +23,7 @@
     /**
      * Tab Groups, defines additional configuration for different groups
      */
-    groups?: {[key: string]: TabGroup};
+    groups?: { [key: string]: TabGroup };
 
     /**
      * @param newLayout layout data can be set to [[LayoutProps.layout]] directly when used as controlled component
@@ -76,180 +76,200 @@
   interface LayoutState {
     layout: LayoutData;
     /** @ignore */
-    dropRect?: {left: number, width: number, top: number, height: number, element: HTMLElement, source?: any, direction?: DropDirection};
+    dropRect?: {
+      left: number;
+      width: number;
+      top: number;
+      height: number;
+      element: HTMLElement;
+      source?: any;
+      direction?: DropDirection;
+    };
+  }
+</script>
+
+<script lang="ts">
+  import WindowBox from '$lib/WindowBox.svelte';
+  import FloatBox from '$lib/FloatBox.svelte';
+  import DockBox from '$lib/DockBox.svelte';
+  import type {
+    TabData,
+    PanelData,
+    BoxData,
+    DropDirection,
+    FloatPosition,
+    LayoutBase,
+    LayoutData
+  } from './dock-data';
+  import * as Algorithm from './algorithm';
+  import * as Serializer from './serializer';
+  import MaxBox from '$lib/MaxBox.svelte';
+  import Portal from 'svelte-portal';
+
+  let props: LayoutProps = $props();
+  let dockState: LayoutState = $state();
+  let panelToFocus: string = $state('');
+  let tempLayout: LayoutData = $state();
+  let dropRectStyle = $state();
+  let ref: HTMLDivElement;
+
+  function getGroup(name: string) {
+    if (name) {
+      let { groups } = props;
+      if (groups && name in groups) {
+        return groups[name];
+      }
+      if (name === placeHolderStyle) {
+        return placeHolderGroup;
+      }
+    }
+    return defaultGroup;
   }
 
+  function getLayout() {
+    return tempLayout || dockState.layout;
+  }
 
-</script>
-<script lang="ts">
-    import WindowBox from "$lib/WindowBox.svelte";
-    import FloatBox from "$lib/FloatBox.svelte";
-    import DockBox from "$lib/DockBox.svelte";
-    import type {
-      TabData,PanelData,BoxData,DropDirection,FloatPosition,LayoutBase,LayoutData
-    } from "./dock-data";
-    import * as Algorithm from './algorithm'
-    import * as Serializer from './serializer'
-    import MaxBox from "$lib/MaxBox.svelte";
-    import Portal from "svelte-portal";
+  function setLayout(layout: LayoutData) {
+    tempLayout = layout;
+    dockState.layout = layout;
+  }
 
-    let props: LayoutProps = $props();
-    let dockState:LayoutState = $state();
-    let panelToFocus: string = $state('');
-    let tempLayout: LayoutData = $state();
-    let dropRectStyle = $state();
-    let ref: HTMLDivElement;
-
-
-    function getGroup(name:string) {
-      if (name) {
-        let {groups} = props;
-        if(groups && name in groups) {
-          return groups[name];
-        }
-        if (name === placeHolderStyle) {
-          return placeHolderGroup;
-        }
-      }
-      return defaultGroup
+  /** @ignore
+   * change layout
+   */
+  function changeLayout(
+    layoutData: LayoutData,
+    currentTabId: string,
+    direction: DropDirection,
+    silent: boolean = false
+  ) {
+    let { layout, onLayoutChange } = props;
+    let savedLayout: LayoutBase;
+    if (onLayoutChange) {
+      savedLayout = Serializer.saveLayoutData(
+        layoutData,
+        this.props.saveTab,
+        this.props.afterPanelSaved
+      );
+      layoutData.loadedFrom = savedLayout;
+      onLayoutChange(savedLayout, currentTabId, direction);
     }
-
-    function getLayout() {
-      return tempLayout || dockState.layout;
+    if (!layout && !silent) {
+      // uncontrolled layout when Props.layout is not defined
+      setLayout(layoutData);
     }
+  }
 
-    function setLayout(layout: LayoutData) {
-      tempLayout = layout;
-      dockState.layout = layout;
-    }
+  /**
+   * Find PanelData or TabData by id
+   */
+  function find(id: string, filter?: Algorithm.Filter): PanelData | TabData | BoxData | undefined {
+    return Algorithm.find(getLayout(), id, filter);
+  }
 
-    /** @ignore
-     * change layout
-     */
-    function changeLayout(layoutData: LayoutData, currentTabId: string, direction: DropDirection, silent: boolean = false) {
-      let {layout, onLayoutChange} = props;
-      let savedLayout: LayoutBase;
-      if (onLayoutChange) {
-        savedLayout = Serializer.saveLayoutData(layoutData, this.props.saveTab, this.props.afterPanelSaved);
-        layoutData.loadedFrom = savedLayout;
-        onLayoutChange(savedLayout, currentTabId, direction);
-      }
-      if (!layout && !silent) {
-        // uncontrolled layout when Props.layout is not defined
-        setLayout(layoutData);
+  function onDragStateChange(draggingScope: any) {
+    if (draggingScope == null) {
+      DockPanel.droppingPanel = null;
+      if (dockState.dropRect) {
+        dockState.dropRect = null;
       }
     }
+  }
 
-    /**
-     * Find PanelData or TabData by id
-     */
-    function find(id: string, filter?: Algorithm.Filter): PanelData | TabData | BoxData | undefined {
-      return Algorithm.find(getLayout(), id, filter);
+  function dockMove(
+    source: TabData | PanelData,
+    target: string | TabData | PanelData | BoxData | null,
+    direction: DropDirection,
+    floatPosition?: FloatPosition
+  ) {
+    let layout = getLayout();
+    if (direction === 'maximize') {
+      layout = Algorithm.maximize(layout, source);
+      panelToFocus = source.id;
+    } else if (direction === 'front') {
+      layout = Algorithm.moveToFront(layout, source);
+    } else {
+      layout = Algorithm.removeFromLayout(layout, source);
     }
 
-    function onDragStateChange (draggingScope: any) {
-      if (draggingScope == null) {
-        DockPanel.droppingPanel = null;
-        if (dockState.dropRect) {
-          dockState.dropRect = null
-
-        }
-      }
+    if (typeof target === 'string') {
+      target = find(target, Algorithm.Filter.All);
+    } else {
+      target = Algorithm.getUpdatedObject(target); // target might change during removeTab
     }
 
-    function dockMove(
-      source: TabData | PanelData,
-      target: string | TabData | PanelData | BoxData | null,
-      direction: DropDirection,
-      floatPosition?: FloatPosition
-    ) {
-      let layout = getLayout();
-      if (direction === 'maximize') {
-        layout = Algorithm.maximize(layout, source);
-        panelToFocus = source.id;
-      } else if (direction === 'front') {
-        layout = Algorithm.moveToFront(layout, source);
+    if (direction === 'float') {
+      let newPanel = Algorithm.converToPanel(source);
+      newPanel.z = Algorithm.nextZIndex(null);
+      if (dockState.dropRect || floatPosition) {
+        layout = Algorithm.floatPanel(layout, newPanel, dockState.dropRect || floatPosition);
       } else {
-        layout = Algorithm.removeFromLayout(layout, source);
+        layout = Algorithm.floatPanel(layout, newPanel);
+        if (ref) {
+          layout = Algorithm.fixFloatPanelPos(layout, ref.offsetWidth, ref.offsetHeight);
+        }
       }
-
-      if (typeof target === 'string') {
-        target = find(target, Algorithm.Filter.All);
-      } else {
-        target = Algorithm.getUpdatedObject(target); // target might change during removeTab
-      }
-
-      if (direction === 'float') {
-        let newPanel = Algorithm.converToPanel(source);
-        newPanel.z = Algorithm.nextZIndex(null);
-        if (dockState.dropRect || floatPosition) {
-          layout = Algorithm.floatPanel(layout, newPanel, dockState.dropRect || floatPosition);
+    } else if (direction === 'new-window') {
+      let newPanel = Algorithm.converToPanel(source);
+      layout = Algorithm.panelToWindow(layout, newPanel);
+    } else if (target) {
+      if ('tabs' in (target as PanelData)) {
+        // panel target
+        if (direction === 'middle') {
+          layout = Algorithm.addTabToPanel(layout, source, target as PanelData);
         } else {
-          layout = Algorithm.floatPanel(layout, newPanel);
-          if (ref) {
-            layout = Algorithm.fixFloatPanelPos(layout, ref.offsetWidth, ref.offsetHeight);
-          }
-        }
-      } else if (direction === 'new-window') {
-        let newPanel = Algorithm.converToPanel(source);
-        layout = Algorithm.panelToWindow(layout, newPanel);
-      } else if (target) {
-        if ('tabs' in (target as PanelData)) {
-          // panel target
-          if (direction === 'middle') {
-            layout = Algorithm.addTabToPanel(layout, source, target as PanelData);
-          } else {
-            let newPanel = Algorithm.converToPanel(source);
-            layout = Algorithm.dockPanelToPanel(layout, newPanel, target as PanelData, direction);
-          }
-
-        } else if ('children' in (target as BoxData)) {
-          // box target
           let newPanel = Algorithm.converToPanel(source);
-          layout = Algorithm.dockPanelToBox(layout, newPanel, target as BoxData, direction);
-        } else {
-          // tab target
-          layout = Algorithm.addNextToTab(layout, source, target as TabData, direction);
+          layout = Algorithm.dockPanelToPanel(layout, newPanel, target as PanelData, direction);
         }
+      } else if ('children' in (target as BoxData)) {
+        // box target
+        let newPanel = Algorithm.converToPanel(source);
+        layout = Algorithm.dockPanelToBox(layout, newPanel, target as BoxData, direction);
+      } else {
+        // tab target
+        layout = Algorithm.addNextToTab(layout, source, target as TabData, direction);
       }
-      if (layout !== getLayout()) {
-        layout = Algorithm.fixLayoutData(layout, props.groups);
-        const currentTabId: string = source.hasOwnProperty('tabs') ? (source as PanelData).activeId : (source as TabData).id;
-        changeLayout(layout, currentTabId, direction);
-      }
-      onDragStateChange(false);
     }
+    if (layout !== getLayout()) {
+      layout = Algorithm.fixLayoutData(layout, props.groups);
+      const currentTabId: string = source.hasOwnProperty('tabs')
+        ? (source as PanelData).activeId
+        : (source as TabData).id;
+      changeLayout(layout, currentTabId, direction);
+    }
+    onDragStateChange(false);
+  }
 
-
-    $effect(()=>{
-      let {style,maximizeTo} = props;
-      let {dropRect} = dockstate;
-      if (dropRect) {
-        let {element, direction, ...rect} = dropRect;
-        dropRectStyle = {...rect, display: 'block'};
-        if (direction === 'float') {
-          dropRectStyle.transition = 'none';
-        }
+  $effect(() => {
+    let { style, maximizeTo } = props;
+    let { dropRect } = dockstate;
+    if (dropRect) {
+      let { element, direction, ...rect } = dropRect;
+      dropRectStyle = { ...rect, display: 'block' };
+      if (direction === 'float') {
+        dropRectStyle.transition = 'none';
       }
-      if (typeof maximizeTo === 'string') {
-        maximizeTo = document.getElementById(maximizeTo);
-      }
-    })
-
+    }
+    if (typeof maximizeTo === 'string') {
+      maximizeTo = document.getElementById(maximizeTo);
+    }
+  });
 </script>
-{#snippet maximize()}
-    <Portal target={props.maximizeTo}>
-        <MaxBox boxData={dockState.layout.maxbox}/>
-    </Portal>
 
-    {#if props.maximizeTo}
-        {props.maximizeTo}
-    {/if}
+{#snippet maximize()}
+  <Portal target={props.maximizeTo}>
+    <MaxBox boxData={dockState.layout.maxbox} />
+  </Portal>
+
+  {#if props.maximizeTo}
+    {props.maximizeTo}
+  {/if}
 {/snippet}
 <div bind:this={ref} class="dock-layout">
-    <DockBox/>
-    <FloatBox/>
-    <WindowBox/>
-    {@render maximize()}
-    <div class="dock-drop-indicator" style={dropRectStyle}></div>
+  <DockBox />
+  <FloatBox />
+  <WindowBox />
+  {@render maximize()}
+  <div class="dock-drop-indicator" style={dropRectStyle}></div>
 </div>

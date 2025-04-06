@@ -1,20 +1,14 @@
 <script lang="ts">
-  import DragDropDiv from "./dragdrop/DragDropDiv.svelte";
+  import DragDropDiv from './dragdrop/DragDropDiv.svelte';
 
-  const {
-    onDragStart, onDragMove, onDragEnd, TabNavList, isMaximized,
-    ...restProps
-  } = $props();
+  const { onDragStart, onDragMove, onDragEnd, TabNavList, isMaximized, ...restProps } = $props();
 
   const layout = React.useContext(DockContextType);
-
-
 
   const ref = React.useRef<HTMLDivElement>();
   const getRef = (div: HTMLDivElement) => {
     ref.current = div;
   };
-
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key.startsWith('Arrow')) {
@@ -25,19 +19,17 @@
       e.preventDefault();
     }
   };
-
 </script>
 
-
-
-<DragDropDiv onDragStartT={onDragStart}
-             onDragMoveT={onDragMove}
-             onDragEndT={onDragEnd}
-             role="tablist"
-             className="dock-bar"
-             onKeyDown={onKeyDown}
-             getRef={getRef}
-             tabIndex={-1}
+<DragDropDiv
+  onDragStartT={onDragStart}
+  onDragMoveT={onDragMove}
+  onDragEndT={onDragEnd}
+  role="tablist"
+  className="dock-bar"
+  {onKeyDown}
+  {getRef}
+  tabIndex={-1}
 >
-    <TabNavList {...restProps}/>
+  <TabNavList {...restProps} />
 </DragDropDiv>

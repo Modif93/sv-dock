@@ -347,16 +347,16 @@ export class TabCache {
     );
 }
 }
-    </script>
+</script>
 
-
-    <Tabs prefixCls="dock"
-    moreIcon={moreIcon}
-    animated={animated}
-    renderTabBar={this.renderTabBar}
-    activeKey={activeId}
-    onChange={this.onTabChange}
-    popupClassName={classNames(groupClassNames(group))}
-    >
-    {@render children?.()}
-    </Tabs>
+<Tabs
+  prefixCls="dock"
+  {moreIcon}
+  {animated}
+  renderTabBar={this.renderTabBar}
+  activeKey={activeId}
+  onChange={this.onTabChange}
+  popupClassName={classNames(groupClassNames(group))}
+>
+  {@render children?.()}
+</Tabs>

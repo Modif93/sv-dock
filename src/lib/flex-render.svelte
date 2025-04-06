@@ -7,8 +7,8 @@
 </script>
 
 <script
-        lang="ts"
-        generics="TData, TValue, TContext extends HeaderContext<TData, TValue> | CellContext<TData, TValue>"
+  lang="ts"
+  generics="TData, TValue, TContext extends HeaderContext<TData, TValue> | CellContext<TData, TValue>"
 >
   import { RenderComponentConfig, RenderSnippetConfig } from './render-helpers.js';
   type Props = {
@@ -26,18 +26,18 @@
 </script>
 
 {#if typeof content === 'string'}
-    {content}
+  {content}
 {:else if content instanceof Function}
-    <!-- It's unlikely that a CellContext will be passed to a Header -->
-    <!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
-    {@const result = content(context as any)}
-    {#if result instanceof RenderComponentConfig}
-        {@const { component: Component, props } = result}
-        <Component {...props} />
-    {:else if result instanceof RenderSnippetConfig}
-        {@const { snippet, params } = result}
-        {@render snippet(params)}
-    {:else}
-        {result}
-    {/if}
+  <!-- It's unlikely that a CellContext will be passed to a Header -->
+  <!-- eslint-disable-next-line @typescript-eslint/no-explicit-any -->
+  {@const result = content(context as any)}
+  {#if result instanceof RenderComponentConfig}
+    {@const { component: Component, props } = result}
+    <Component {...props} />
+  {:else if result instanceof RenderSnippetConfig}
+    {@const { snippet, params } = result}
+    {@render snippet(params)}
+  {:else}
+    {result}
+  {/if}
 {/if}

@@ -1,5 +1,5 @@
 import type { ComponentProps, Component } from 'svelte';
-import {RenderComponentConfig} from './render-helpers'
+import { RenderComponentConfig } from './render-helpers';
 export enum Filter {
   Tab = 1,
   Panel = 1 << 1,
@@ -12,7 +12,7 @@ export enum Filter {
   AnyTab = Tab | EveryWhere,
   AnyPanel = Panel | EveryWhere,
   AnyTabPanel = Tab | Panel | EveryWhere,
-  All = Tab | Panel | Box | EveryWhere,
+  All = Tab | Panel | Box | EveryWhere
 }
 
 export interface TabGroup {
@@ -66,7 +66,6 @@ export interface TabGroup {
    */
   panelExtra?: (panel: PanelData, context: DockContext) => RenderComponentConfig<Component>;
 
-
   /**
    * When creating float panel from dragging, DockLayout would use the original panel's size.
    * Use this to defined the [min, max] allowed with for the default size of a float panel.
@@ -97,7 +96,7 @@ export interface TabGroup {
 /** @ignore */
 export const defaultGroup: TabGroup = {
   floatable: true,
-  maximizable: true,
+  maximizable: true
 };
 /** @ignore */
 export const placeHolderStyle = 'place-holder';
@@ -105,7 +104,7 @@ export const placeHolderStyle = 'place-holder';
 export const maximePlaceHolderId = '-maximized-placeholder-';
 /** @ignore */
 export const placeHolderGroup: TabGroup = {
-  floatable: false,
+  floatable: false
 };
 
 /** @ignore */
@@ -115,7 +114,6 @@ interface DockDataBase {
 }
 
 export type DockMode = 'horizontal' | 'vertical' | 'float' | 'window' | 'maximize';
-
 
 export interface TabBase {
   /**
@@ -195,7 +193,6 @@ export interface BoxData extends BoxBase, BoxChild {
 }
 
 export interface TabData extends TabBase, DockDataBase {
-
   /**
    * - group defines style of the panel
    * - tabs with different tab groups can not be put in same panel
@@ -242,7 +239,6 @@ interface PanelLock {
  * a panel is a visiaul container with tabs button in the title bar
  */
 export interface PanelData extends PanelBase, BoxChild {
-
   parent?: BoxData;
 
   tabs: TabData[];
@@ -253,8 +249,6 @@ export interface PanelData extends PanelBase, BoxChild {
    * a locked panel can not be moved to float layer either
    */
   panelLock?: PanelLock; // if not null, panel won't disappear even when all children are gone
-
-
 }
 
 export interface TabPaneCache {
@@ -263,7 +257,6 @@ export interface TabPaneCache {
   owner: any;
   portalElement?: HTMLElement;
 }
-
 
 export interface LayoutData extends LayoutBase {
   /**
@@ -282,7 +275,6 @@ export interface LayoutData extends LayoutBase {
    */
   windowbox?: BoxData;
 
-
   /**
    * The maximized panel,
    * only one child allowed, child must be PanelData
@@ -296,7 +288,7 @@ export interface LayoutData extends LayoutBase {
 }
 
 export type DropDirection =
-  'left'
+  | 'left'
   | 'right'
   | 'bottom'
   | 'top'
@@ -310,8 +302,7 @@ export type DropDirection =
   | 'new-window'
   | 'move' // dockbox or float panel moved, or float panel resized
   | 'active' // become active tab
-  | 'update' // tab updated with updateTab
-  ;
+  | 'update'; // tab updated with updateTab
 
 export interface FloatSize {
   width: number;
@@ -333,7 +324,13 @@ export interface DockContext {
   useEdgeDrop(): boolean;
 
   /** @ignore */
-  setDropRect(element: HTMLElement, direction?: DropDirection, source?: any, event?: {clientX: number, clientY: number}, panelSize?: [number, number]): void;
+  setDropRect(
+    element: HTMLElement,
+    direction?: DropDirection,
+    source?: any,
+    event?: { clientX: number; clientY: number },
+    panelSize?: [number, number]
+  ): void;
 
   /** @ignore */
   getLayoutSize(): LayoutSize;
@@ -397,11 +394,8 @@ export interface DockContext {
   removeTabCache(id: string, owner: any): void;
 
   /** @ignore */
-  updateTabCache(id: string, portal: RenderComponentConfig<Component>|string): void;
+  updateTabCache(id: string, portal: RenderComponentConfig<Component> | string): void;
 
   /** @ignore */
   getRootElement(): HTMLDivElement;
 }
-
-
-
