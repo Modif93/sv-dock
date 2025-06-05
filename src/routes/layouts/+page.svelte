@@ -6,7 +6,6 @@
   import { renderComponent, renderSnippet } from '$lib/renderHelper.js';
   import TestComponent from '$lib/TestComponent.svelte';
   import { createRawSnippet } from 'svelte';
-  import FloatBox from '$lib/FloatBox.svelte';
   let defTab: Tab = {
     content: () =>
       renderSnippet(
@@ -53,21 +52,10 @@
                   ''
                 )
             }
-          ]
+          ],
+          panelLock: { panelStyle: 'main' }
         }
       ]
-    },
-    floatbox: {
-      tabs: [
-        {id: 't6', title:'Tab 6', content: 'new content',closable:true},
-        {id: 't7', title:'Tab 7', content: 'new content',closable:true},
-      ],
-      box: {
-        w: 400,
-        h: 400,
-        x: 300,
-        y: 100
-      }
     }
   };
 

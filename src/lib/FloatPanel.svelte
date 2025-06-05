@@ -1,27 +1,20 @@
+<script lang="ts" module>
+  import type {SizeBox, TabData} from './dock-data.js';
+  export type FloatPanelProps = {
+    tabs: TabData[];
+    box: SizeBox
+    onTabEmpty: () => void;
+  };
+</script>
 <script lang="ts">
   import { X } from '@lucide/svelte';
-  import type {FloatBoxData, HandlePosition, TabData} from '$lib/dock-data.js';
+  import type {HandlePosition} from '$lib/dock-data.js';
   import ResizeHandle from '$lib/dragdrop/ResizeHandle.svelte';
   import FlexRender from "$lib/FlexRender.svelte";
   import { cn } from '$lib/utils.js';
   import DragDropDiv from "$lib/dragdrop/DragDropDiv.svelte";
 
-
-  type FloatBoxProps = {
-    floatData: FloatBoxData;
-    onTabEmpty: () => void;
-  };
-  let { floatData = $bindable({
-    tabs: [],
-    box: {
-      w: 400,
-      h: 400,
-      x: 300,
-      y: 100
-    }
-  }),onTabEmpty
-  }: FloatBoxProps = $props();
-
+  let { tabs = $bindable([]),box = $bindable({w:100,h:100,x:100,y:100}), onTabEmpty }: FloatPanelProps = $props();
 
   let isDragging = $state(false);
   let isResizing = $state(false);
@@ -32,12 +25,12 @@
   let startHeight = $state(0);
   let startBoxX = $state(0);
   let startBoxY = $state(0);
-  let activeTabId = $state(floatData.tabs[0].id);
+  let activeTabId = $state(tabs[0].id);
   let tabbarDiv: HTMLDivElement | undefined = $state();
   let activeTabIndex = $derived(
-    floatData.tabs.findIndex((tab) => tab.id === activeTabId) === -1
+    tabs.findIndex((tab) => tab.id === activeTabId) === -1
       ? 0
-      : floatData.tabs.findIndex((tab) => tab.id === activeTabId)
+      : tabs.findIndex((tab) => tab.id === activeTabId)
   );
 
   function handleClicked(e: MouseEvent, pos: HandlePosition) {
@@ -52,10 +45,10 @@
     startY = e.clientY;
 
     // 리사이징 시작 시 초기 박스 크기와 위치 저장
-    startWidth = floatData.box.w;
-    startHeight = floatData.box.h;
-    startBoxX = floatData.box.x;
-    startBoxY = floatData.box.y;
+    startWidth = box.w;
+    startHeight = box.h;
+    startBoxX = box.x;
+    startBoxY = box.y;
   }
 
   function handlePanelClick(e: MouseEvent) {
@@ -63,8 +56,8 @@
     // 드래깅 시작 시 초기 마우스 위치와 박스 위치 저장
     startX = e.clientX;
     startY = e.clientY;
-    startBoxX = floatData.box.x;
-    startBoxY = floatData.box.y;
+    startBoxX = box.x;
+    startBoxY = box.y;
   }
 
 
@@ -78,57 +71,57 @@
 
     if (isDragging) {
       // 드래깅 시 박스 위치 업데이트
-      floatData.box.x = startBoxX + deltaX;
-      floatData.box.y = startBoxY + deltaY;
+      box.x = startBoxX + deltaX;
+      box.y = startBoxY + deltaY;
     } else if (isResizing && resizeHandle) {
       // 리사이징 시 핸들에 따라 박스 크기와 위치 업데이트
       switch (resizeHandle) {
         case 'e': // 오른쪽 핸들
-          floatData.box.w = Math.max(50, startWidth + deltaX);
+          box.w = Math.max(50, startWidth + deltaX);
           break;
         case 'w': // 왼쪽 핸들
           const newWidth = Math.max(50, startWidth - deltaX);
-          floatData.box.x = startBoxX + (startWidth - newWidth);
-          floatData.box.w = newWidth;
+          box.x = startBoxX + (startWidth - newWidth);
+          box.w = newWidth;
           break;
         case 'n': // 위쪽 핸들
           const newHeight = Math.max(50, startHeight - deltaY);
-          floatData.box.y = startBoxY + (startHeight - newHeight);
-          floatData.box.h = newHeight;
+          box.y = startBoxY + (startHeight - newHeight);
+          box.h = newHeight;
           break;
         case 's': // 아래쪽 핸들
-          floatData.box.h = Math.max(50, startHeight + deltaY);
+          box.h = Math.max(50, startHeight + deltaY);
           break;
         case 'ne': // 오른쪽 위 핸들
-          floatData.box.w = Math.max(50, startWidth + deltaX);
+          box.w = Math.max(50, startWidth + deltaX);
           const newHeightNE = Math.max(50, startHeight - deltaY);
-          floatData.box.y = startBoxY + (startHeight - newHeightNE);
-          floatData.box.h = newHeightNE;
+          box.y = startBoxY + (startHeight - newHeightNE);
+          box.h = newHeightNE;
           break;
         case 'nw': // 왼쪽 위 핸들
           const newWidthNW = Math.max(50, startWidth - deltaX);
-          floatData.box.x = startBoxX + (startWidth - newWidthNW);
-          floatData.box.w = newWidthNW;
+          box.x = startBoxX + (startWidth - newWidthNW);
+          box.w = newWidthNW;
           const newHeightNW = Math.max(50, startHeight - deltaY);
-          floatData.box.y = startBoxY + (startHeight - newHeightNW);
-          floatData.box.h = newHeightNW;
+          box.y = startBoxY + (startHeight - newHeightNW);
+          box.h = newHeightNW;
           break;
         case 'se': // 오른쪽 아래 핸들
-          floatData.box.w = Math.max(50, startWidth + deltaX);
-          floatData.box.h = Math.max(50, startHeight + deltaY);
+          box.w = Math.max(50, startWidth + deltaX);
+          box.h = Math.max(50, startHeight + deltaY);
           break;
         case 'sw': // 왼쪽 아래 핸들
           const newWidthSW = Math.max(50, startWidth - deltaX);
-          floatData.box.x = startBoxX + (startWidth - newWidthSW);
-          floatData.box.w = newWidthSW;
-          floatData.box.h = Math.max(50, startHeight + deltaY);
+          box.x = startBoxX + (startWidth - newWidthSW);
+          box.w = newWidthSW;
+          box.h = Math.max(50, startHeight + deltaY);
           break;
       }
     }
   }
   function closeTab(tab: TabData) {
-    floatData.tabs = floatData.tabs.filter((t) => t.id !== tab.id);
-    if (floatData.tabs.length === 0) {
+    tabs = tabs.filter((t) => t.id !== tab.id);
+    if (tabs.length === 0) {
       console.log('tab is Empty!');
       onTabEmpty();
     }
@@ -152,7 +145,7 @@
 </script>
 
 {#snippet titleSnippet()}
-  {#each floatData.tabs as tab, i}
+  {#each tabs as tab, i}
     <DragDropDiv
         data-state={activeTabIndex === i ? 'active' : ''}
         class="flex items-center gap-1 bg-gray-300 px-5 py-2 data-[state=active]:bg-gray-200"
@@ -173,28 +166,28 @@
 {/snippet}
 
 {#snippet panelSnippet()}
-  {#if floatData.tabs.length > 0}
-    <FlexRender content={floatData.tabs[activeTabIndex].content} />
+  {#if tabs.length > 0}
+    <FlexRender content={tabs[activeTabIndex].content} />
   {/if}
 {/snippet}
 
 <svelte:window onmousemove={(e) => handleMouseMove(e)} onmouseup={() => handleMouseUp()} />
 
 <div
-  class={cn(
+    class={cn(
     'absolute z-1 shadow-[0_0_4px_rgb(170,170,170)]',
     'flex flex-col transition-opacity duration-100',
     isDragging ? 'opacity-50' : 'opacity-100'
   )}
-  style="width: {floatData.box.w}px;height: {floatData.box.h}px;top: {floatData.box.y}px; left: {floatData.box.x}px;"
+    style="width: {box.w}px;height: {box.h}px;top: {box.y}px; left: {box.x}px;"
 >
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
-    role="banner"
-    bind:this={tabbarDiv}
-    onwheel={(e) => handleScroll(e)}
-    onmousedown={(e) => handlePanelClick(e)}
-    class={cn(
+      role="banner"
+      bind:this={tabbarDiv}
+      onwheel={(e) => handleScroll(e)}
+      onmousedown={(e) => handlePanelClick(e)}
+      class={cn(
         'h-8 flex scrollbar-hide bg-gray-300 gap-2 cursor-move px-2',
         isDragging?'cursor-move':'cursor-auto'
     )}

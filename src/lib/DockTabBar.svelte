@@ -1,35 +1,27 @@
 <script lang="ts">
+  import { XIcon } from '@lucide/svelte';
+  import type { TabData } from './dock-data.js';
   import DragDropDiv from './dragdrop/DragDropDiv.svelte';
+  import FlexRender from './FlexRender.svelte';
 
-  const { onDragStart, onDragMove, onDragEnd, TabNavList, isMaximized, ...restProps } = $props();
-
-  const layout = React.useContext(DockContextType);
-
-  const ref = React.useRef<HTMLDivElement>();
-  const getRef = (div: HTMLDivElement) => {
-    ref.current = div;
+  type DockTabBarProps = {
+    tab: TabData;
+    activeTabId: string;
+    closeTab: (tab: TabData) => void;
   };
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key.startsWith('Arrow')) {
-      if (!checkLocalTabMove(e.key, ref.current) && !isMaximized) {
-        layout.navigateToPanel(ref.current, e.key);
-      }
-      e.stopPropagation();
-      e.preventDefault();
-    }
-  };
+  let { tab, closeTab }: DockTabBarProps = $props();
 </script>
 
 <DragDropDiv
-  onDragStartT={onDragStart}
-  onDragMoveT={onDragMove}
-  onDragEndT={onDragEnd}
-  role="tablist"
-  className="dock-bar"
-  {onKeyDown}
-  {getRef}
-  tabIndex={-1}
+  data-state={tab.id && activeTabId === tab.id ? 'active' : ''}
+  class="flex items-center gap-1 bg-gray-300 p-1 data-[state=active]:bg-gray-200"
 >
-  <TabNavList {...restProps} />
+  <button onmousedown={(e) => handleTabClick(e, tab)} class="text-nowrap">
+    <FlexRender content={tab.title} />
+  </button>
+  {#if tab.closable}
+    <button class="hover:drop-shadow-xs hover:drop-shadow-blue-300" onclick={() => closeTab(tab)}>
+      <XIcon class="size-4" />
+    </button>
+  {/if}
 </DragDropDiv>
