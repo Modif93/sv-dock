@@ -1,5 +1,3 @@
-import type { Component, ComponentProps, Snippet } from 'svelte';
-
 export type MaxBoxData = {};
 export type TabData = {
   id: string;
