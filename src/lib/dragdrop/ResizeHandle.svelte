@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-  import type { HandlePosition } from '$lib/dock-data.js';
+  import type { HandlePosition } from '$lib/dockData.js';
   import { cn } from '$lib/utils.js';
 
   type ResizeHandleProps = {

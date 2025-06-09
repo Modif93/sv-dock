@@ -1,3 +1,4 @@
 // Reexport your entry components here
-export type {LayoutData} from './dock-data'
-export {default as DockLayout} from './DockLayout.svelte'
+export type { LayoutData, TabData } from './dockData';
+export { renderComponent, renderSnippet } from './renderHelper';
+export { default as DockLayout } from './DockLayout.svelte';

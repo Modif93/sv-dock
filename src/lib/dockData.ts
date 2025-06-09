@@ -9,14 +9,15 @@ export type PanelData = {
   id?: string;
   size?: number;
   tabs: TabData[];
-  box?: SizeBox
+  box?: SizeBox;
 };
 export type SizeBox = {
   w: number;
   h: number;
   x: number;
   y: number;
-}
+  z: number;
+};
 
 // export type FloatBoxData = {
 //   id?: string;
@@ -32,7 +33,7 @@ export type BoxData = {
 export type FloatBoxData = {
   mode: 'float';
   children: PanelData[];
-}
+};
 export type LayoutData = {
   dockbox: BoxData;
   floatbox: FloatBoxData;
@@ -47,5 +48,3 @@ export function isPanelData(child: PanelData | BoxData): child is PanelData {
 export function isBoxData(child: PanelData | BoxData): child is BoxData {
   return 'children' in child;
 }
-
-

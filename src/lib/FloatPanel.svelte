@@ -1,20 +1,29 @@
-<script lang="ts" module>
-  import type {SizeBox, TabData} from './dock-data.js';
-  export type FloatPanelProps = {
-    tabs: TabData[];
-    box: SizeBox
-    onTabEmpty: () => void;
-  };
-</script>
 <script lang="ts">
   import { X } from '@lucide/svelte';
-  import type {HandlePosition} from '$lib/dock-data.js';
+  import type { HandlePosition } from '$lib/dockData.js';
   import ResizeHandle from '$lib/dragdrop/ResizeHandle.svelte';
-  import FlexRender from "$lib/FlexRender.svelte";
+  import FlexRender from '$lib/FlexRender.svelte';
   import { cn } from '$lib/utils.js';
-  import DragDropDiv from "$lib/dragdrop/DragDropDiv.svelte";
-
-  let { tabs = $bindable([]),box = $bindable({w:100,h:100,x:100,y:100}), onTabEmpty }: FloatPanelProps = $props();
+  import DragDropDiv from '$lib/dragdrop/DragDropDiv.svelte';
+  import type { SizeBox, TabData } from './dockData.js';
+  import { nanoid } from 'nanoid';
+  import { dropStore } from '$lib/utils';
+  import type { PanelDropEvent } from './dragdrop/gesture-manager.js';
+  export type FloatPanelProps = {
+    id?: string;
+    tabs: TabData[];
+    box?: SizeBox;
+    activePanel: number;
+    onTabEmpty: () => void;
+    onTabDrop?: (e: PanelDropEvent) => void;
+  };
+  let {
+    id = $bindable(),
+    tabs = $bindable([]),
+    box = $bindable({ w: 100, h: 100, x: 100, y: 100, z: 0 }),
+    onTabEmpty,
+    onTabDrop
+  }: FloatPanelProps = $props();
 
   let isDragging = $state(false);
   let isResizing = $state(false);
@@ -58,8 +67,8 @@
     startY = e.clientY;
     startBoxX = box.x;
     startBoxY = box.y;
+    $dropStore.fromId = id;
   }
-
 
   function handleMouseMove(e: MouseEvent) {
     const y = e.clientY;
@@ -122,7 +131,6 @@
   function closeTab(tab: TabData) {
     tabs = tabs.filter((t) => t.id !== tab.id);
     if (tabs.length === 0) {
-      console.log('tab is Empty!');
       onTabEmpty();
     }
   }
@@ -142,21 +150,30 @@
     isDragging = false;
     resizeHandle = null;
   }
+  $effect(() => {
+    if (!id) {
+      id = nanoid();
+    }
+  });
 </script>
 
 {#snippet titleSnippet()}
   {#each tabs as tab, i}
     <DragDropDiv
-        data-state={activeTabIndex === i ? 'active' : ''}
-        class="flex items-center gap-1 bg-gray-300 px-5 py-2 data-[state=active]:bg-gray-200"
+      {onTabDrop}
+      panelId={id}
+      tabId={tab.id}
+      isParentFloating
+      data-state={activeTabIndex === i ? 'active' : ''}
+      class="flex items-center gap-1 bg-gray-300 px-5 py-2 data-[state=active]:bg-gray-200"
     >
       <button onmousedown={(e) => handleTabClick(e, tab)} class="flex-grow text-nowrap">
         <FlexRender content={tab.title} />
       </button>
       {#if tab.closable}
         <button
-            class="hover:drop-shadow-xs hover:drop-shadow-blue-300"
-            onclick={() => closeTab(tab)}
+          class="hover:drop-shadow-xs hover:drop-shadow-blue-300"
+          onclick={() => closeTab(tab)}
         >
           <X class="size-4" />
         </button>
@@ -174,27 +191,27 @@
 <svelte:window onmousemove={(e) => handleMouseMove(e)} onmouseup={() => handleMouseUp()} />
 
 <div
-    class={cn(
-    'absolute z-1 shadow-[0_0_4px_rgb(170,170,170)]',
+  class={cn(
+    'z-panel absolute shadow-[0_0_4px_rgb(170,170,170)]',
     'flex flex-col transition-opacity duration-100',
-    isDragging ? 'opacity-50' : 'opacity-100'
+    isDragging ? 'active opacity-50' : 'opacity-100'
   )}
-    style="width: {box.w}px;height: {box.h}px;top: {box.y}px; left: {box.x}px;"
+  style="width: {box.w}px;height: {box.h}px;top: {box.y}px; left: {box.x}px;"
 >
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
-      role="banner"
-      bind:this={tabbarDiv}
-      onwheel={(e) => handleScroll(e)}
-      onmousedown={(e) => handlePanelClick(e)}
-      class={cn(
-        'h-8 flex scrollbar-hide bg-gray-300 gap-2 cursor-move px-2',
-        isDragging?'cursor-move':'cursor-auto'
+    role="banner"
+    bind:this={tabbarDiv}
+    onwheel={(e) => handleScroll(e)}
+    onmousedown={(e) => handlePanelClick(e)}
+    class={cn(
+      'scrollbar-hide flex h-8 cursor-move gap-2 bg-gray-300 px-2',
+      isDragging ? 'cursor-move' : 'cursor-auto'
     )}
   >
     {@render titleSnippet()}
   </div>
-  <div class="flex-grow bg-gray-300">
+  <div class="flex-grow bg-gray-100">
     {@render panelSnippet()}
   </div>
   <ResizeHandle pos="w" {handleClicked} />
@@ -206,3 +223,12 @@
   <ResizeHandle pos="sw" {handleClicked} />
   <ResizeHandle pos="se" {handleClicked} />
 </div>
+
+<style>
+  .z-panel {
+    z-index: auto;
+  }
+  .z-panel.active {
+    z-index: 1;
+  }
+</style>

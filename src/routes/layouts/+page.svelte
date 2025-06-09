@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isPanelData, type LayoutData } from '$lib/dock-data.js';
+  import { isPanelData, type LayoutData } from '$lib/dockData.js';
   import DockLayout from '$lib/DockLayout.svelte';
   import DockTabs, { type TabData } from '$lib/DockTabs.svelte';
   import { nanoid } from 'nanoid';

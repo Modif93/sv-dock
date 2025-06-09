@@ -1,8 +1,12 @@
 <script lang="ts" module>
-  import type { TabData } from './dock-data.js';
+  import type { TabData } from './dockData.js';
+  import type { MouseEventHandler } from 'svelte/elements';
+  import type { PanelDropEvent } from './dragdrop/gesture-manager';
   export type DockTabProps = {
+    panelId?: string;
     tabs: TabData[];
     onTabEmpty: () => void;
+    onTabDrop: (e: PanelDropEvent) => void;
   };
 </script>
 
@@ -10,8 +14,14 @@
   import { X } from '@lucide/svelte';
   import FlexRender from './FlexRender.svelte';
   import DragDropDiv from './dragdrop/DragDropDiv.svelte';
+  import { nanoid } from 'nanoid';
 
-  let { tabs = $bindable([]), onTabEmpty }: DockTabProps = $props();
+  let {
+    panelId = $bindable(),
+    tabs = $bindable([]),
+    onTabEmpty,
+    onTabDrop
+  }: DockTabProps = $props();
 
   let activeTabId = $state(tabs[0].id);
   let tabbarDiv: HTMLDivElement | undefined = $state();
@@ -42,6 +52,11 @@
       ? 0
       : tabs.findIndex((tab) => tab.id === activeTabId)
   );
+  $effect(() => {
+    if (!panelId) {
+      panelId = nanoid();
+    }
+  });
 </script>
 
 <div class="flex flex-col">
@@ -53,6 +68,9 @@
     >
       {#each tabs as tab, i}
         <DragDropDiv
+          tabId={tab.id}
+          {panelId}
+          {onTabDrop}
           data-state={activeTabIndex === i ? 'active' : ''}
           class="flex items-center gap-1 bg-gray-300 px-5 py-2 data-[state=active]:bg-gray-200"
         >

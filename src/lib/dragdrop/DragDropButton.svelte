@@ -23,11 +23,10 @@
     position: HandlePosition;
     onmousedrag: (e: MouseEvent, position: HandlePosition) => void;
   };
-
 </script>
 
 <script lang="ts">
-  import { cn } from '../manager';
+  import { cn } from '../utils';
 
   let { position, onmousedrag }: DragDropProps = $props();
 

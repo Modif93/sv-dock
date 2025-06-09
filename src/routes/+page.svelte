@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { isPanelData, type LayoutData } from '$lib/dock-data.js';
+  import { isPanelData, type LayoutData } from '$lib/dockData.js';
   import DockLayout from '$lib/DockLayout.svelte';
-  import DockTabs, { type TabData } from '$lib/DockTabs.svelte';
+  import DockTabs from '$lib/DockTabs.svelte';
+  import type { TabData } from '$lib/dockData.js';
   import { nanoid } from 'nanoid';
   import { renderComponent, renderSnippet } from '$lib/renderHelper.js';
   import TestComponent from '$lib/TestComponent.svelte';
   import { createRawSnippet } from 'svelte';
   import FloatBox from '$lib/FloatBox.svelte';
-  let defTab: Tab = {
+  import { dropStore } from '$lib/utils';
+  let defTab = {
     content: () =>
       renderSnippet(
         createRawSnippet(() => ({
@@ -58,16 +60,33 @@
       ]
     },
     floatbox: {
-      tabs: [
-        {id: 't6', title:'Tab 6', content: 'new content',closable:true},
-        {id: 't7', title:'Tab 7', content: 'new content',closable:true},
-      ],
-      box: {
-        w: 400,
-        h: 400,
-        x: 300,
-        y: 100
-      }
+      mode: 'float',
+      children: [
+        {
+          tabs: [
+            { id: 't6', title: 'Tab 6', content: 'Tab 6 content', closable: true },
+            { id: 't7', title: 'Tab 7', content: 'Tab 7 content', closable: true }
+          ],
+          box: {
+            w: 400,
+            h: 400,
+            x: 300,
+            y: 100
+          }
+        },
+        {
+          tabs: [
+            { id: 't8', title: 'Tab 8', content: 'Tab 8 content', closable: true },
+            { id: 't9', title: 'Tab 9', content: 'Tab 9 content', closable: true }
+          ],
+          box: {
+            w: 400,
+            h: 400,
+            x: 300,
+            y: 100
+          }
+        }
+      ]
     }
   };
 
@@ -96,6 +115,10 @@
       class="rounded border border-gray-600 bg-blue-200 p-2 text-nowrap"
       onclick={() => addTab()}>add Tab</button
     >
+    {$dropStore.tabId ? $dropStore.tabId : 'noTabId'}
+    {$dropStore.fromId ? $dropStore.fromId : 'noFromId'}
+    {$dropStore.toId ? $dropStore.toId : 'noToId'}
+    {$dropStore.direction ? $dropStore.direction : 'noDirection'}
   </div>
   <div class="h-[calc(100vh-10rem)] w-screen">
     <DockLayout bind:layout />

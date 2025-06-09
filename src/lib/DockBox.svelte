@@ -1,13 +1,16 @@
 <script lang="ts">
-  import { isBoxData, isPanelData, type BoxData, type PanelData } from './dock-data.js';
+  import { isBoxData, isPanelData, type BoxData, type PanelData } from './dockData.js';
   import { PaneGroup, Pane, PaneResizer } from 'paneforge';
   import DockBox from './DockBox.svelte';
   import DockPanel from './DockPanel.svelte';
+  import type { PanelDropEvent } from '$lib/dragdrop/gesture-manager';
+  import { dropStore } from '$lib/utils';
 
   type DockBoxProps = {
     boxData: BoxData;
+    onTabDrop?: (e: PanelDropEvent) => void;
   };
-  let { boxData = $bindable() }: DockBoxProps = $props();
+  let { boxData = $bindable(), onTabDrop }: DockBoxProps = $props();
   let dockId = $props.id();
 
   let ref = $state(null);
@@ -24,6 +27,11 @@
   $effect(() => {
     console.log($inspect(ref));
   });
+  function ondrop(e: PanelDropEvent) {
+    console.log(e.fromId, e.toId, e.tabId, e.direction);
+    $dropStore.fromId = undefined;
+    $dropStore.tabId = undefined;
+  }
 </script>
 
 <PaneGroup bind:this={ref} data-pane-group="group-{dockId}" direction={boxData.mode}>
@@ -35,7 +43,12 @@
     {/if}
 
     {#if isPanelData(boxData.children[i])}
-      <DockPanel bind:panelData={boxData.children[i]} onPanelEmpty={() => handlePanelEmpty(i)} />
+      <DockPanel
+        bind:panelData={boxData.children[i]}
+        {ondrop}
+        onTabDrop={(e)=> onTabDrop?.(e)}
+        onPanelEmpty={() => handlePanelEmpty(i)}
+      />
     {:else if isBoxData(boxData.children[i])}
       <Pane defaultSize={boxData.children[i].size} minSize={10}>
         <DockBox bind:boxData={boxData.children[i]} />
