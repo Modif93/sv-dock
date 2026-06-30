@@ -27,7 +27,7 @@
 		"ci:publish": "pnpm build:packages && changeset publish",
 		"lint": "prettier --check . && oxlint . && eslint .",
 		"format": "prettier --write .",
-		"check": "pnpm -r check",
+		"check": "pnpm -F \"./packages/**\" check && pnpm -F \"./packages/**\" --parallel prepack && pnpm -F \"./sites/**\" check",
 		"sync": "pnpm -r sync",
 		"new": "node ./scripts/add-utility.mjs"
 	},
