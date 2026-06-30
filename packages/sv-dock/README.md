@@ -26,39 +26,39 @@ Adjust the `@source` path if your app stylesheet is nested deeper in your projec
 
 ```svelte
 <script lang="ts">
-	import { DockLayout, type LayoutData } from '@modif93/sv-dock';
+  import { DockLayout, type LayoutData } from '@modif93/sv-dock';
 
-	let layout: LayoutData = $state({
-		dockbox: {
-			mode: 'horizontal',
-			children: [
-				{
-					tabs: [
-						{
-							id: 'explorer',
-							title: 'Explorer',
-							content: 'Project files',
-							closable: true
-						}
-					]
-				},
-				{
-					tabs: [
-						{
-							id: 'editor',
-							title: 'Editor',
-							content: 'Main editor',
-							closable: true
-						}
-					]
-				}
-			]
-		}
-	});
+  let layout: LayoutData = $state({
+    dockbox: {
+      mode: 'horizontal',
+      children: [
+        {
+          tabs: [
+            {
+              id: 'explorer',
+              title: 'Explorer',
+              content: 'Project files',
+              closable: true
+            }
+          ]
+        },
+        {
+          tabs: [
+            {
+              id: 'editor',
+              title: 'Editor',
+              content: 'Main editor',
+              closable: true
+            }
+          ]
+        }
+      ]
+    }
+  });
 </script>
 
 <div class="h-screen">
-	<DockLayout bind:layout />
+  <DockLayout bind:layout />
 </div>
 ```
 
@@ -70,34 +70,34 @@ Tab titles and content can be strings, numbers, Svelte components, Svelte snippe
 
 ```svelte
 <script lang="ts">
-	import { DockLayout, renderComponent, renderSnippet, type LayoutData } from '@modif93/sv-dock';
-	import DetailsPane from './DetailsPane.svelte';
+  import { DockLayout, renderComponent, renderSnippet, type LayoutData } from '@modif93/sv-dock';
+  import DetailsPane from './DetailsPane.svelte';
 
-	let layout: LayoutData = $state({
-		dockbox: {
-			mode: 'horizontal',
-			children: [
-				{
-					tabs: [
-						{
-							id: 'details',
-							title: 'Details',
-							content: renderComponent(DetailsPane, { itemId: 'item-1' })
-						},
-						{
-							id: 'summary',
-							title: 'Summary',
-							content: renderSnippet(summary, { count: 3 })
-						}
-					]
-				}
-			]
-		}
-	});
+  let layout: LayoutData = $state({
+    dockbox: {
+      mode: 'horizontal',
+      children: [
+        {
+          tabs: [
+            {
+              id: 'details',
+              title: 'Details',
+              content: renderComponent(DetailsPane, { itemId: 'item-1' })
+            },
+            {
+              id: 'summary',
+              title: 'Summary',
+              content: renderSnippet(summary, { count: 3 })
+            }
+          ]
+        }
+      ]
+    }
+  });
 </script>
 
 {#snippet summary(params: { count: number })}
-	<strong>{params.count} selected</strong>
+  <strong>{params.count} selected</strong>
 {/snippet}
 
 <DockLayout bind:layout />

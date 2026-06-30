@@ -1,6 +1,6 @@
 {
   "name": "@modif93/sv-dock",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Dockable layout components for Svelte 5.",
   "scripts": {
     "dev": "vite dev",
