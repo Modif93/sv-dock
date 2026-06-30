@@ -24,7 +24,7 @@
 		"build:packages": "pnpm -F \"./packages/**\" --parallel build",
 		"build:content": "pnpm -F \"./sites/**\" --parallel build:content",
 		"build:contributors": "pnpm -F docs build:contributors",
-		"ci:publish": "pnpm build:packages && changeset publish",
+		"ci:publish": "pnpm build:packages && NPM_CONFIG_REGISTRY=https://npm.pkg.github.com changeset publish",
 		"lint": "prettier --check . && oxlint . && eslint .",
 		"format": "prettier --write .",
 		"check": "pnpm -F \"./packages/**\" check && pnpm -F \"./packages/**\" --parallel prepack && pnpm -F \"./sites/**\" check",
